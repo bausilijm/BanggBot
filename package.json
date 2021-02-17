@@ -7,13 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
-    "node": "12.0.0"
+  "node": "12.0.0"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "token": "Njg5MTk3MjMyODU5MjUwNzA2.Xm_W8A._TnRyTV9AKrvJ9KRVKtK2iJUMq4",
-  "dependencies": {
-    "nodemon": "^2.0.7"
-  }
 }
