@@ -1,5 +1,7 @@
 {
-    "prefix": "!",
+    "prefix": ".",
     "token": "",
-    "randomMessages": ["mm o ya", "idc", "so???", "ya rite...", "dunce"]
+    "randomMessages": ["mm o ya", "idc", "so???", "ya rite...", "dunce", "why have you come to this place"],
+    "quotes": [],
+    "sql": ""
 }
