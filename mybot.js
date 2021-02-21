@@ -2,17 +2,16 @@ const { prefix, token, randomMessages, quote, sql } = require('./config.json');
 const pg = require('pg');
 const Discord = require("discord.js");
 const { last } = require('ramda');
+const pgp = require('pg-promise')();
 const bot = new Discord.Client();
 var connectionString = sql;
 var pgClient = new pg.Client(connectionString);
 var numQuotes = 0;
-var randomMessageChance = 1; //%
-var msgBeforeLast = [];
-var msgBeforeLastCounter = 0;
+var randomMessageChance = 1; //%  
 var lastQuote = '';
 
 try {
-pgClient.connect();
+  pgClient.connect();
 } catch(error) { console.error(error); }
 
 const talk = (txt, msg) => {
@@ -51,24 +50,15 @@ const getQuote = (number, channel) => {
 }
 
 const getNumQuotes = () => {
-    pgClient.query(`select count(*) from quotes`).then(r => {
-      numQuotes = r.rows[0].count;
-      return r.rows[0].count;
-    });
-}
-
-const findChan = (chan) => {
-  for (let a = 0; a < msgBeforeLast.length; a++) {
-    if (msgBeforeLast[a].indexOf(chan) > -1) {
-      return a;
-    }
-  }
-  return false;
+  pgClient.query(`select count(*) from quotes`).then(r => {
+    numQuotes = r.rows[0].count;
+     return r.rows[0].count;
+   });
 }
 
 const delQuote = (txt, chan) => {
   getNumQuotes();
-  if (txt > numQuotes || txt < 0) {
+  if (txt > numQuotes || txt < 0 || isNaN(txt)) {
     talk(`ur a stupid dunce...`, chan);
     return;
   }
@@ -97,70 +87,78 @@ const checkDuplicate = (text) => {
   return count;
 }
 
+const commandCheck = (msg) => {
+  const args = msg.content.slice(prefix.length).trim().split(/ +/);
+  const command = args.shift().toLowerCase();
+  //admin command block
+  if (msg.author.tag == "shaggers#3237") {
+    switch (command) {
+    case 'tweet':
+      if (!args[0]) msg.channel.send(`Tweeters are currently set to ${randomMessageChance}%! :]]`);
+      else {
+      randomMessageChance = args[0];
+      msg.channel.send(`Tweeters set to ${randomMessageChance}%!`);
+      }
+    break;
+    case 'quotethat':
+      msg.channel.messages.fetch({ limit: 2 }).then(aaa => {
+      let lastMsg = aaa.last();
+      addQuote(lastMsg.author.username, lastMsg.content, msg);
+      });
+      break;
+    case 'delquote':
+      delQuote(args[0], msg);
+    break;
+    default:
+    }
+  }
+  //normal command block
+  switch (command) {
+    case 'addquote':
+      if (!args[0]) talk('USAGE: !addquote <text>', msg);
+      else if (msg.author.tag !== "Tweetster#1823") {
+        let author = msg.author.username;
+        let quote = args.join(' ');
+        if (checkDuplicate(quote) > 2) { talk('stop repeating yourself dunce', msg); return; }
+        if (quote === lastQuote) {
+          talk('stop repeating urself dunce', msg);
+         return;
+        }
+        else addQuote(author, quote, msg);
+      }
+    break;
+    case 'getquote':
+      if (!args[0]) {
+        getNumQuotes();
+        let x = Math.floor(Math.random() * (numQuotes - 1));
+        console.log(x);
+        getQuote(Number(x), msg);
+      }
+      else if (isNaN(args[0])) talk('u big dunce thats not a number', msg);
+      else {
+        if (msg.author.tag !== "Tweetster#1823") getQuote(args[0], msg);
+      }
+    break;
+    case 'numquotes':
+      getNumQuotes();
+      talk(`${numQuotes} total quote(s) in the database dunce.`, msg);
+    break;
+    case 'help':
+      talk('Commands: .addquote, .getquote, .numquotes', msg);
+    default:
+  }
+}
+
+//end of functions, begin event checks
+
 bot.once('ready', () => {
   console.log(`DEBUG: Ready!`);
   numQuotes = getNumQuotes();
 });
 
 bot.on("message", (msg) => {
-  const args = msg.content.slice(prefix.length).trim().split(/ +/);
-  const command = args.shift().toLowerCase();
+  commandCheck(msg);
   //admin command block
-  if (msg.author.tag == "shaggers#3237") {
-    if (command === 'tweet') {
-      if (!args[0]) msg.channel.send(`Tweeters are currently set to ${randomMessageChance}%! :]]`);
-      else {
-      randomMessageChance = args[0];
-      msg.channel.send(`Tweeters set to ${randomMessageChance}%!`);
-      }
-    }
-  }
-  //normal command block
-  switch (command) {
-  case 'addquote':
-    if (!args[0]) talk('USAGE: !addquote <text>', msg);
-    else if (msg.author.tag !== "Tweetster#1823") {
-      let author = msg.author.username;
-      let quote = args.join(' ');
-      if (checkDuplicate(quote) > 2) { talk('stop repeating yourself dunce', msg); return; }
-      if (quote === lastQuote) {
-        talk('stop repeating urself dunce', msg);
-        return;
-      }
-      addQuote(author, quote, msg);
-    }
-    break;
-  case 'getquote':
-    if (!args[0]) {
-      getNumQuotes();
-      let x = Math.floor(Math.random() * (numQuotes - 1));
-      console.log(x);
-      getQuote(Number(x), msg);
-    }
-    else if (isNaN(args[0])) talk('u big dunce thats not a number', msg);
-    else {
-      if (msg.author.tag !== "Tweetster#1823") getQuote(args[0], msg);
-    }
-  break;
-  case 'numquotes':
-    getNumQuotes();
-    talk(`${numQuotes} total quote(s) in the database dunce.`, msg);
-    break;
-  case 'quotethat':
-    if (msg.author.tag !== "shaggers#3237") { talk(`ur not shaggers stfu`, msg); }
-    else {
-    msg.channel.messages.fetch({ limit: 2 }).then(aaa => {
-      let lastMsg = aaa.last();
-      addQuote(lastMsg.author.username, lastMsg.content, msg);
-    });
-    }
-    break;
-  case 'delquote':
-    if (msg.author.tag == "shaggers#3237") delQuote(args[0], msg);
-    else talk(`stfu ur not shaggers`, msg);
-    break;
-  default:
-  }
   if (msg.author.tag !== "Tweetster#1823") randomMessageCheck(msg);
 });
  
