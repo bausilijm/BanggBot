@@ -1,7 +1,13 @@
 {
     "prefix": ".",
     "token": "",
-    "randomMessages": ["mm o ya", "idc", "so???", "ya rite...", "dunce", "why have you come to this place"],
+    "randomMessages": [
+        "mm o ya", "idc", "so???", "ya rite...", 
+        "dunce", "why have you come to this place", "tell me what you know about the mountain",
+        "can't believe u treating me like this", "that's not very nice to me..........",
+        "ain't give a cluck..", "..", "nice knees bitch",
+        "um...................", "its time to go to the tweetment centre sweetie.."
+    ],
     "quotes": [],
-    "sql": ""
+    "sql": "postgres://user:pass@localhost:5432/banggbot"
 }
