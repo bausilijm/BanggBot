@@ -30,7 +30,7 @@ const addQuote = (author, quote, channel) => {
   pgClient.query(`insert into quotes (author, quote) values ( '${author}', '${quote}' )`);
   getNumQuotes();
   lastQuote = quote;
-  talk(`Quote added!`, channel);
+  talk(`Quote added.`, channel);
 }
 
 const getQuote = (number, channel) => {
@@ -158,8 +158,7 @@ bot.once('ready', () => {
 
 bot.on("message", (msg) => {
   commandCheck(msg);
-  //admin command block
   if (msg.author.tag !== "Tweetster#1823") randomMessageCheck(msg);
 });
- 
+
 bot.login(token);
