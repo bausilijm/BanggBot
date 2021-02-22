@@ -1,6 +1,6 @@
 /*
 todo: fix adding quotes with emojis (switch to mysql or mariadb?)
-add search quote function, add other things besides just quotes and talking
+add search quote function, add other things besides just quotes and talking :]
 */
 const { prefix, token, randomMessages, quote, sql } = require('./config.json');
 const pg = require('pg');

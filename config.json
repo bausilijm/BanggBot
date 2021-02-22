@@ -9,5 +9,5 @@
         "um...................", "its time to go to the tweetment centre sweetie.."
     ],
     "quotes": [],
-    "sql": "postgres://user:pass@localhost:5432/banggbot"
+    "sql": "postgres://username:pass@localhost:5432/banggbot"
 }
