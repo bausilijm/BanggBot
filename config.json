@@ -1,6 +1,6 @@
 {
     "prefix": ".",
-    "token": "Njg5MTk3MjMyODU5MjUwNzA2.Xm_W8A.-Y1cSVMGAqwn21L6rSWW2Mghc40",
+    "token": "",
     "randomMessages": [
         "mm o ya", "idc", "so???", "ya rite...", 
         "dunce", "why have you come to this place", "tell me what you know about the mountain",
@@ -9,5 +9,5 @@
         "um...................", "its time to go to the tweetment centre sweetie.."
     ],
     "quotes": [],
-    "sql": "postgres://justin:mccloud@localhost:5432/banggbot"
+    "sql": "postgres://user:pass@localhost:5432/banggbot"
 }
