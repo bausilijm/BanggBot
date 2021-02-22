@@ -1,3 +1,7 @@
+/*
+todo: fix adding quotes with emojis (switch to mysql or mariadb?)
+add search quote function, add other things besides just quotes and talking
+*/
 const { prefix, token, randomMessages, quote, sql } = require('./config.json');
 const pg = require('pg');
 const Discord = require("discord.js");
@@ -19,7 +23,7 @@ const talk = (txt, msg) => {
 }
 
 const randomMessageCheck = (msg) => {
-  let random = Math.floor(Math.random() * 100);
+  let random = Math.random() * 100;
   if (random <= randomMessageChance) {
     let msgNo = Math.floor(Math.random() * randomMessages.length);
     msg.channel.send(`${randomMessages[msgNo]}`);
@@ -35,7 +39,7 @@ const addQuote = (author, quote, channel) => {
 
 const getQuote = (number, channel) => {
   pgClient.query(`select * from quotes`).then(r => {
-    if (Number(number) > r.rowCount || Number(number) < 0) {
+    if (Number(number) > r.rowCount || Number(number) <= 0) {
       talk(`Quote doesn't exist. There are ${numQuotes} quote(s) ya dunce.`, channel);
       return;
     }
@@ -109,6 +113,10 @@ const commandCheck = (msg) => {
     case 'delquote':
       delQuote(args[0], msg);
     break;
+    case 'repeat':
+      talk(`${args}`, msg);
+      console.log(args);
+      break;
     default:
     }
   }
@@ -128,10 +136,11 @@ const commandCheck = (msg) => {
       }
     break;
     case 'getquote':
-      if (!args[0]) {
+      if (args[0] == null) {
         getNumQuotes();
         let x = Math.floor(Math.random() * (numQuotes - 1));
         console.log(x);
+        if (x == 0) x = 1;
         getQuote(Number(x), msg);
       }
       else if (isNaN(args[0])) talk('u big dunce thats not a number', msg);
