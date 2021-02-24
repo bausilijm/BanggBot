@@ -2,16 +2,15 @@
 todo: fix adding quotes with emojis (switch to mysql or mariadb?)
 add search quote function, add other things besides just quotes and talking :]
 */
-const { prefix, token, randomMessages, quote, sql } = require('./config.json');
+const { prefix, token, randomMessages, quote, sql, reactWords } = require('./config.json');
 const pg = require('pg');
 const Discord = require("discord.js");
-const { last } = require('ramda');
-const pgp = require('pg-promise')();
 const bot = new Discord.Client();
 var connectionString = sql;
 var pgClient = new pg.Client(connectionString);
 var numQuotes = 0;
 var randomMessageChance = 1; //%  
+var reactChance = 100; //%
 var lastQuote = '';
 
 try {
@@ -34,7 +33,7 @@ const addQuote = (author, quote, channel) => {
   pgClient.query(`insert into quotes (author, quote) values ( '${author}', '${quote}' )`);
   getNumQuotes();
   lastQuote = quote;
-  talk(`Quote added.`, channel);
+  talk(`Quote ${Number(numQuotes)+1} added.`, channel);
 }
 
 const getQuote = (number, channel) => {
@@ -56,6 +55,7 @@ const getQuote = (number, channel) => {
 const getNumQuotes = () => {
   pgClient.query(`select count(*) from quotes`).then(r => {
     numQuotes = r.rows[0].count;
+    console.log(`DEBUG: Quote count is ${numQuotes}`);
      return r.rows[0].count;
    });
 }
@@ -91,12 +91,57 @@ const checkDuplicate = (text) => {
   return count;
 }
 
+const searchText = (text, keyword) => {
+  let match;
+  text.split(" ").forEach(function(word) {
+    if (word == keyword) match = 1;
+  });
+  return match;
+}
+
+const modifyAccess = (args, msg) => {
+  //1: admin 2: normal
+  switch (args[0]) {
+    case 'add':
+      pgClient.query(`insert into user_access (username, access_level) values (${args[1]}, ${args[2]})`);
+      talk(`User ${args[1]} added with access level ${args[2]}`, msg);
+    break;
+    case 'del':
+      pgClient.query(`delete from user_access where username like ${args[1]}`).then(r=>{
+        if (r.rowCount < 1) talk(`User ${args[1]} doesn't exist.`, msg);
+        else {
+          talk(`User ${args[1]} removed.`, msg);
+        }
+      });
+    break;
+    default:
+  }
+}
+
+const reactCheck = (txt) => {
+  reactWords.forEach(word => {
+    if (searchText(txt.content, word.split(" ")[0])) {
+      let x = Math.floor(Math.random() * 100);
+      if (x < reactChance) txt.react(word.split(" ")[1]);
+    }
+  });
+}
+
 const commandCheck = (msg) => {
   const args = msg.content.slice(prefix.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
   //admin command block
   if (msg.author.tag == "shaggers#3237") {
     switch (command) {
+    case 'reactchance':
+    reactChance = args[0];
+    talk(`React chance set to ${reactChance}%! :]]`, msg);
+    break;
+    case 'test':
+    break;
+    case 'access':
+    modifyAccess(args, msg);
+    break;
     case 'tweet':
       if (!args[0]) msg.channel.send(`Tweeters are currently set to ${randomMessageChance}%! :]]`);
       else {
@@ -152,11 +197,16 @@ const commandCheck = (msg) => {
       getNumQuotes();
       talk(`${numQuotes} total quote(s) in the database dunce.`, msg);
     break;
+    case 'avatar':
+      talk(`ur dunce avatar:`, msg);
+      talk(`${msg.author.displayAvatarURL()}`, msg);
+    break;
     case 'help':
       talk('Commands: .addquote, .getquote, .numquotes', msg);
     default:
   }
 }
+
 
 //end of functions, begin event checks
 
@@ -167,6 +217,7 @@ bot.once('ready', () => {
 
 bot.on("message", (msg) => {
   commandCheck(msg);
+  reactCheck(msg);
   if (msg.author.tag !== "Tweetster#1823") randomMessageCheck(msg);
 });
 

@@ -8,6 +8,10 @@
         "ain't give a cluck..", "..", "nice knees bitch",
         "um...................", "its time to go to the tweetment centre sweetie.."
     ],
+    "reactWords": [
+        "kentavious 🏀", "lebron 🏀", "luka 🏀", "kcp 🏀", "curry 🏀", "shon 🐺", "kobe 🏀",
+        "dunce 🤡", "tweet 🐦"
+    ],
     "quotes": [],
     "sql": "postgres://<username>:<password>@localhost:5432/banggbot"
 }
