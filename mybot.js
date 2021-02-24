@@ -91,14 +91,6 @@ const checkDuplicate = (text) => {
   return count;
 }
 
-const searchText = (text, keyword) => {
-  let match;
-  text.split(" ").forEach(function(word) {
-    if (word == keyword) match = 1;
-  });
-  return match;
-}
-
 const modifyAccess = (args, msg) => {
   //1: admin 2: normal
   switch (args[0]) {
@@ -120,7 +112,8 @@ const modifyAccess = (args, msg) => {
 
 const reactCheck = (txt) => {
   reactWords.forEach(word => {
-    if (searchText(txt.content, word.split(" ")[0])) {
+    let regex = new RegExp(word.split(" ")[0], "g");
+    if (txt.content.match(regex)) {
       let x = Math.floor(Math.random() * 100);
       if (x < reactChance) txt.react(word.split(" ")[1]);
     }

@@ -13,5 +13,5 @@
         "dunce 🤡", "tweet 🐦"
     ],
     "quotes": [],
-    "sql": "postgres://<username>:<password>@localhost:5432/banggbot"
+    "sql": "postgres://<user>:<pass>@localhost:5432/banggbot"
 }
