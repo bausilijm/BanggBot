@@ -137,14 +137,16 @@ const delQuote = (txt, chan) => {
   }
 };
 
-const checkDuplicate = (text) => {
-  let count = 0;
-  for (let a = 0; a < text.split(" ").length; a++) {
-    if (text.split(" ")[0] === text.split(" ")[a]) count++;
-  }
-  return count;
+const checkRepeat = (text) => {
+  let result = 0;
+  text.split(" ").forEach(word => {
+      let x = new RegExp(`${word}`, "g");
+      if (text.match(x).length > 1) result = text.match(x).length;
+  });
+  return result;
 }
 
+/*
 const modifyAccess = (args, msg) => {
   //1: admin 2: normal
   switch (args[0]) {
@@ -163,6 +165,7 @@ const modifyAccess = (args, msg) => {
     default:
   }
 }
+*/
 
 const reactCheck = (txt) => {
   reactWords.forEach(word => {
@@ -184,11 +187,11 @@ const commandCheck = (msg) => {
     reactChance = args[0];
     talk(`React chance set to ${reactChance}%! :]]`, msg);
     break;
-    case 'test':
-    break;
+    /*
     case 'access':
     modifyAccess(args, msg);
     break;
+    */
     case 'tweet':
       if (!args[0]) msg.channel.send(`Tweeters are currently set to ${randomMessageChance}%! :]]`);
       else {
@@ -229,9 +232,9 @@ const commandCheck = (msg) => {
       else if (msg.author.tag !== "Tweetster#1823") {
         let author = msg.author.username;
         let quote = args.join(' ');
-        if (checkDuplicate(quote) > 2) { talk('stop repeating yourself dunce', msg); return; }
+        if (checkRepeat(quote) > 5) { talk('stop repeating yourself dunce', msg); return; }
         if (quote === lastQuote) {
-          talk('stop repeating urself dunce', msg);
+          talk('nice try dunce', msg);
          return;
         }
         else addQuote(author, quote, msg);
