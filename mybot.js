@@ -5,19 +5,17 @@ add search quote function, add other things besides just quotes and talking :]
 const { prefix, token, randomMessages, sql, reactWords } = require('./config.json');
 const pg = require('pg');
 const Discord = require("discord.js");
-const bot = new Discord.Client();
 const axios = require('axios').default;
 const cheerio = require('cheerio');
 const fs = require('fs');
-let infoMatch = new RegExp("<tr>.+</tr>", "g");
-let htmlStrip = new RegExp("<\/?[^>]+(>|$)", "g");
-let guildMatch = new RegExp("&lt;", "g");
+const bot = new Discord.Client();
 var connectionString = sql;
 var pgClient = new pg.Client(connectionString);
 var numQuotes = 0;
 var randomMessageChance = 1; //%  
 var reactChance = 100; //%
 var lastQuote = '';
+let htmlStrip = new RegExp("<\/?[^>]+(>|$)", "g");
 
 try {
   pgClient.connect();
@@ -39,6 +37,7 @@ const randomMessageCheck = (msg) => {
 
 characterSheet = (character) => {
   let sheet = [];
+  let guildMatch = new RegExp("&lt;", "g");
   let hp = new RegExp("Hit Points", "g");
   let ac = new RegExp("AC", "g");
   let mana = new RegExp("Mana", "g");
@@ -67,6 +66,7 @@ const fomelo = (character, channel) => {
   .then((response) => {
       if (response.status === 200) {
           let notFound = new RegExp("Character not found", "g");
+          let infoMatch = new RegExp("<tr>.+</tr>", "g");
           let result;
           let resultArray = [];
           thing = response.data;
