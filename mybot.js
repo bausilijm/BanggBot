@@ -2,10 +2,16 @@
 todo: fix adding quotes with emojis (switch to mysql or mariadb?)
 add search quote function, add other things besides just quotes and talking :]
 */
-const { prefix, token, randomMessages, quote, sql, reactWords } = require('./config.json');
+const { prefix, token, randomMessages, sql, reactWords } = require('./config.json');
 const pg = require('pg');
 const Discord = require("discord.js");
 const bot = new Discord.Client();
+const axios = require('axios').default;
+const cheerio = require('cheerio');
+const fs = require('fs');
+let infoMatch = new RegExp("<tr>.+</tr>", "g");
+let htmlStrip = new RegExp("<\/?[^>]+(>|$)", "g");
+let guildMatch = new RegExp("&lt;", "g");
 var connectionString = sql;
 var pgClient = new pg.Client(connectionString);
 var numQuotes = 0;
@@ -29,6 +35,54 @@ const randomMessageCheck = (msg) => {
   }
 }
 
+//fomelo bot
+
+characterSheet = (character) => {
+  let sheet = [];
+  let hp = new RegExp("Hit Points", "g");
+  let ac = new RegExp("AC", "g");
+  let mana = new RegExp("Mana", "g");
+  let AA = new RegExp("Earned", "g");
+
+  sheet.push(`[NAME]: ${character[0]}`, `[CLASS]: ${character[1]}`);
+  if (character[2].match(guildMatch)) { sheet.push(`[GUILD]: ${character[2].replace(guildMatch, '<').replace(/&gt;/g, '>')}`); }
+  let statsOne = [];
+  character.forEach(ele => {
+      if (ele.match(hp)) statsOne.push(`[HP: ${ele.split(" ")[2]} |`);
+      if (ele.match(ac)) statsOne.push(`AC: ${ele.split(" ")[1]} |`);
+      if (ele.match(mana)) statsOne.push(`MANA: ${ele.split(" ")[1]}]`);
+      if (ele.match(AA)) sheet.push(`[AA: ${ele}]`);
+  })
+  sheet.splice(sheet.length-1, 0, statsOne.join(" "));
+  return sheet;
+}
+const fomelo = (character, channel) => {
+  async function parseCharacter(info) {
+      const result = await characterSheet(info);
+      result.forEach(stat => {
+        talk(stat, channel);
+      });
+  }
+  axios.get(`http://shardsofdalaya.com/fomelo/fomelo.php?char=${character}`)
+  .then((response) => {
+      if (response.status === 200) {
+          let notFound = new RegExp("Character not found", "g");
+          let result;
+          let resultArray = [];
+          thing = response.data;
+          if (thing.match(notFound)) { talk("Character not found in Fomelo database.", channel); return; }
+          else {
+              let a = thing.match(infoMatch).toString().replace(htmlStrip, ' ');
+              result = a.split(",");
+              result.forEach(element => {
+              resultArray.push(element.trim().split(" ").filter(word => word).join(" "));
+              });
+              parseCharacter(resultArray);
+          }
+      }
+  }, (error) => console.log(err));
+}
+//quote bot
 const addQuote = (author, quote, channel) => {
   pgClient.query(`insert into quotes (author, quote) values ( '${author}', '${quote}' )`);
   getNumQuotes();
@@ -159,7 +213,17 @@ const commandCheck = (msg) => {
     }
   }
   //normal command block
+  let stripLetters = new RegExp("[^A-Z+|^a-z+]", "g");
+  let stripNumbers = new RegExp("[^0-9+]");
   switch (command) {
+    case 'fomelo':
+      if (!args[0]) talk('[Fomelo Bot] USAGE: .fomelo <character name>', msg);
+      if (!isNaN(args[0])) talk('[Fomelo Bot]: Type a player name, not a number.', msg);
+      else {
+        args[0] = args[0].replace(stripLetters, '');
+        fomelo(args[0], msg);
+      }
+    break;
     case 'addquote':
       if (!args[0]) talk('USAGE: !addquote <text>', msg);
       else if (msg.author.tag !== "Tweetster#1823") {
@@ -200,12 +264,10 @@ const commandCheck = (msg) => {
   }
 }
 
-
 //end of functions, begin event checks
 
 bot.once('ready', () => {
   console.log(`DEBUG: Ready!`);
-  numQuotes = getNumQuotes();
 });
 
 bot.on("message", (msg) => {
@@ -214,4 +276,9 @@ bot.on("message", (msg) => {
   if (msg.author.tag !== "Tweetster#1823") randomMessageCheck(msg);
 });
 
-bot.login(token);
+const main = () => {
+  numQuotes = getNumQuotes();
+  bot.login(token);
+}
+
+main();
